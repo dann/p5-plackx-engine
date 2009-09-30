@@ -2,6 +2,6 @@ use strict;
 use warnings;
 use Test::LoadAllModules;
 
-BEGIN {    
+BEGIN {
     all_uses_ok(search_path => 'PlackX::Engine');
 }
