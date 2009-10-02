@@ -50,3 +50,31 @@ sub enable_middleware {
 1;
 
 __END__
+
+
+=encoding utf-8
+
+=head1 NAME
+
+PlackX::Engine::Builder::Declare - the DSL for PlackX::Engine::Builder.
+
+=head1 SYNOPSIS
+
+  use PlackX::Engine::Builder::Declare;
+
+=head1 DESCRIPTION
+
+PlackX::Engine::Builder::Declare is the DSL for PlackX::Engine::Builder. 
+
+=head1 AUTHOR
+
+Takatoshi Kitano E<lt>kitano.tk@gmail.comE<gt>
+
+=head1 SEE ALSO
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
