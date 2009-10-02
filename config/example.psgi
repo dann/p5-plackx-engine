@@ -6,7 +6,7 @@ my $request_handler = sub {
     my $res = Plack::Response->new;
     $res->code(200);
     $res->header( 'Content-Type' => 'text/html' );
-    $res->body( ["Hello World"] );
+    $res->body( "Hello World" );
     return $res;
 };
 

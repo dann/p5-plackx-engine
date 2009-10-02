@@ -12,19 +12,6 @@ sub import {
     *{ $caller . '::enable' }  = \&enable;
 }
 
-sub _stub {
-    my $name = shift;
-    return sub { Carp::croak "Can't call $name() outside routing block" };
-}
-
-{
-    my @Declarations = qw(builder enable);
-    for my $keyword (@Declarations) {
-        no strict 'refs';
-        *$keyword = _stub $keyword;
-    }
-}
-
 sub builder(&) {
     my $block = shift;
 
