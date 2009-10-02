@@ -1,6 +1,7 @@
 package PlackX::Engine::Builder;
 use strict;
 use warnings;
+use PlackX::Engine::Util;
 use base qw/Class::Accessor::Fast/;
 __PACKAGE__->mk_accessors(qw/middlewares/);
 
@@ -13,9 +14,7 @@ sub new {
 
 sub add_middleware {
     my ( $self, $middleware_name, $middleware ) = @_;
-    eval "use $middleware_name";
-    die $@ if $@;
-
+    PlackX::Engine::Util::load_class($middleware_name);
     push @{ $self->{middlewares} }, $middleware;
 }
 

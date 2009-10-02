@@ -24,4 +24,4 @@ my $engine = PlackX::Engine->new(
     }
 );
 
-my $handler = $engine->handler;
+my $handler = $engine->psgi_handler;

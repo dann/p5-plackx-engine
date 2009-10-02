@@ -2,27 +2,48 @@ package PlackX::Engine;
 use strict;
 use warnings;
 use 5.008_001;
-our $VERSION = '0.01';
-
-use Class::Accessor "antlers";
 use Plack::Loader;
 use Plack::Request;
 use PlackX::Engine::Builder;
+use Carp ();
 
-has server          => ( is => "rw", isa => "HashRef" );
-has request_handler => ( is => "rw", isa => "CodeRef" );
-has middlewares     => ( is => "rw", isa => "ArrayRef" );
+use base qw/Class::Accessor::Fast/;
+__PACKAGE__->mk_accessors(qw/server middlewares request_handler/);
+
+our $VERSION = '0.01';
+
+sub new {
+    my ( $class, $args ) = @_;
+    Carp::croak 'request_handler is required.'
+        unless $args->{request_handler};
+    my $self = bless {
+        server          => $args->{server},
+        request_handler => $args->{request_handler},
+        middlewares     => $args->{middlewares} || [],
+        request_class   => $args->{request_class} || 'Plack::Request',
+    }, $class;
+    $self->_init;
+    $self;
+}
+
+sub _init {
+    my $self = shift;
+    PlackX::Engine::Util::load_class($self->{request_class});
+}
 
 sub run {
     my $self = shift;
+    Carp::croak 'server is required' unless $self->{server};
+    Carp::croak '{server}->{module} is required' unless $self->{server}->{module};
+
     my $server_instance
         = $self->_build_server_instance( $self->{server}->{module},
         $self->{server}->{args} );
-    my $request_handler = $self->handler;
+    my $request_handler = $self->psgi_handler;
     $server_instance->run($request_handler);
 }
 
-sub handler {
+sub psgi_handler {
     shift->_build_request_handler;
 }
 
@@ -52,7 +73,7 @@ sub _wrap_with_middlewares {
     my $builder = PlackX::Engine::Builder->new;
 
     # orz. this code should be moved to PlackX::Engine::Builder
-    for my $middleware ( @{ $self->{middlewares} || [] } ) {
+    for my $middleware ( @{ $self->{middlewares}} ) {
         my $middleware_name = $middleware->{module};
         $builder->add_middleware(
             $middleware_name,
@@ -67,7 +88,7 @@ sub _wrap_with_middlewares {
 
 sub build_request {
     my ( $self, $env ) = @_;
-    Plack::Request->new($env);
+    $self->{request_class}->new($env);
 }
 
 1;
