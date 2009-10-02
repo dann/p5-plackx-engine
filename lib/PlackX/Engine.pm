@@ -3,7 +3,6 @@ use strict;
 use warnings;
 use 5.008_001;
 use Plack::Loader;
-use Plack::Request;
 use PlackX::Engine::Builder;
 use Carp ();
 
