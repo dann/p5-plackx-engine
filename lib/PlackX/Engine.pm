@@ -6,9 +6,8 @@ our $VERSION = '0.01';
 
 use Class::Accessor "antlers";
 use Plack::Loader;
-use Plack::Middleware;
-use Plack::Builder;
 use Plack::Request;
+use PlackX::Engine::Builder;
 
 has server          => ( is => "rw", isa => "HashRef" );
 has request_handler => ( is => "rw", isa => "CodeRef" );
@@ -33,27 +32,37 @@ sub _build_server_instance {
 }
 
 sub _build_request_handler {
-    my $self            = shift;
-    my $request_handler = sub {
+    my $self = shift;
+    my $app  = $self->_build_app;
+    $self->_wrap_with_middlewares($app);
+}
+
+sub _build_app {
+    my $self = shift;
+    return sub {
         my $env = shift;
         my $req = $self->build_request($env);
-        return $self->{request_handler}->($req);
+        my $res = $self->{request_handler}->($req);
+        $res->finalize;
     };
-    $self->_wrap_with_middlewares($request_handler);
 }
 
 sub _wrap_with_middlewares {
     my ( $self, $request_handler ) = @_;
-    for my $middleware ( reverse @{ $self->{middlewares} || [] } ) {
-        my $sub = $middleware->{module};
-        my $subclass = $sub =~ s/^\+// ? $sub : "Plack::Middleware::$sub";
-        eval "use $subclass";
-        die $@ if $@;
+    my $builder = PlackX::Engine::Builder->new;
 
-        $request_handler = $subclass->wrap( $request_handler,
-            %{ $middleware->{args} || {} } );
+    # orz. this code should be moved to PlackX::Engine::Builder
+    for my $middleware ( @{ $self->{middlewares} || [] } ) {
+        my $middleware_name = $middleware->{module};
+        $builder->add_middleware(
+            $middleware_name,
+            sub {
+                $middleware_name->wrap( @{ $middleware->{args} || [] },
+                    $_[0] );
+            }
+        );
     }
-    $request_handler;
+    $builder->to_app($request_handler);
 }
 
 sub build_request {
@@ -82,7 +91,6 @@ PlackX::Engine -
       $res->code(200);
       $res->header( 'Content-Type' => 'text/html' );
       $res->body( ["Hello World"] );
-      $res->finalize;
   };
   
   my $engine = PlackX::Engine->new(
@@ -96,8 +104,8 @@ PlackX::Engine -
           },
           request_handler => $request_handler,
           middlewares => [
-              { module => "AccessLog::Timed" },
-              { module => "Static" }
+              { module => "Plack::Middleware::AccessLog::Timed" },
+              { module => "Plack::Middleware::Static" }
           ],
       }
   );

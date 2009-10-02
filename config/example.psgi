@@ -7,7 +7,7 @@ my $request_handler = sub {
     $res->code(200);
     $res->header( 'Content-Type' => 'text/html' );
     $res->body( ["Hello World"] );
-    $res->finalize;
+    return $res;
 };
 
 my $engine = PlackX::Engine->new(
@@ -20,7 +20,7 @@ my $engine = PlackX::Engine->new(
         },
         request_handler => $request_handler,
         middlewares =>
-            [ { module => "AccessLog::Timed" }, { module => "Static" } ],
+            [ { module => "Plack::Middleware::AccessLog::Timed" }, { module => "Plack::Middleware::Static" } ],
     }
 );
 
