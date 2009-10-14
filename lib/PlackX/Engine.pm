@@ -2,6 +2,8 @@ package PlackX::Engine;
 use strict;
 use warnings;
 use 5.008_001;
+our $VERSION = '0.01';
+
 use Plack::Loader;
 use Plack::Builder;
 use PlackX::Engine::Util;
@@ -9,8 +11,6 @@ use Carp ();
 
 use base qw/Class::Accessor::Fast/;
 __PACKAGE__->mk_accessors(qw/server middlewares request_handler request_class/);
-
-our $VERSION = '0.01';
 
 sub new {
     my ( $class, $args ) = @_;
