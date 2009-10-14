@@ -2,7 +2,6 @@ use strict;
 use Test::Base;
 use PlackX::Engine;
 use Plack::Response;
-use PlackX::Engine::Builder::Declare;
 
 filters {
     app         => 'eval',

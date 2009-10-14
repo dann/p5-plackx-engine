@@ -3,8 +3,9 @@ name 'PlackX-Engine';
 all_from 'lib/PlackX/Engine.pm';
 
 requires(
-    "Plack"                 => 0,
     "Class::Accessor::Fast" => 0,
+    "Plack"                 => 0,
+    "Plack::Request"        => 0,
 );
 test_requires(
     'Test::More'           => 0,

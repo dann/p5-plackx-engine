@@ -3,11 +3,12 @@ use strict;
 use warnings;
 use 5.008_001;
 use Plack::Loader;
-use PlackX::Engine::Builder;
+use Plack::Builder;
+use PlackX::Engine::Util;
 use Carp ();
 
 use base qw/Class::Accessor::Fast/;
-__PACKAGE__->mk_accessors(qw/server middlewares request_handler/);
+__PACKAGE__->mk_accessors(qw/server middlewares request_handler request_class/);
 
 our $VERSION = '0.01';
 
@@ -27,13 +28,14 @@ sub new {
 
 sub _init {
     my $self = shift;
-    PlackX::Engine::Util::load_class($self->{request_class});
+    PlackX::Engine::Util::load_class( $self->{request_class} );
 }
 
 sub run {
     my $self = shift;
     Carp::croak 'server is required' unless $self->{server};
-    Carp::croak '{server}->{module} is required' unless $self->{server}->{module};
+    Carp::croak '{server}->{module} is required'
+        unless $self->{server}->{module};
 
     my $server_instance
         = $self->_build_server_instance( $self->{server}->{module},
@@ -69,18 +71,10 @@ sub _build_app {
 
 sub _wrap_with_middlewares {
     my ( $self, $request_handler ) = @_;
-    my $builder = PlackX::Engine::Builder->new;
-
-    # orz. this code should be moved to PlackX::Engine::Builder
-    for my $middleware ( @{ $self->{middlewares}} ) {
-        my $middleware_name = $middleware->{module};
-        $builder->add_middleware(
-            $middleware_name,
-            sub {
-                $middleware_name->wrap( @{ $middleware->{args} || [] },
-                    $_[0] );
-            }
-        );
+    my $builder = Plack::Builder->new;
+    for my $middleware ( @{ $self->{middlewares} } ) {
+        $builder->add_middleware( $middleware->{module},
+            %{ $middleware->{opts} || {} } );
     }
     $builder->to_app($request_handler);
 }
@@ -98,9 +92,11 @@ __END__
 
 =head1 NAME
 
-PlackX::Engine -
+PlackX::Engine - simple request wrapper for Plack
 
 =head1 SYNOPSIS
+
+* case1: as standalone
 
   use PlackX::Engine;
   use Plack::Response;
@@ -127,25 +123,29 @@ PlackX::Engine -
               { module => "Plack::Middleware::AccessLog::Timed" },
               { module => "Plack::Middleware::Static" }
           ],
+          request_class => 'Plack::Request', # you can use request class
       }
   );
-  
+ 
   $engine->run;
+
+* case2: as psgi handler builder
+  just create engine and return psgi_handler
+ 
+  my $psgi_handler = $engine->psgi_handler;
+
 
 =head1 DESCRIPTION
 
-PlackX::Engine is
+PlackX::Engine is the simple request wrapper for Plack.
+You want to wrap psgi env with request and response if you make application with Plack.
+You don't need to  wrap psgi env with the request and finaize response if you use this module.
 
 =head1 SOURCE AVAILABILITY
 
 This source is in Github:
 
-  http://github.com/dann/
-
-=head1 CONTRIBUTORS
-
-Many thanks to:
-
+  http://github.com/dann/p5-plackx-engine
 
 =head1 AUTHOR
 
