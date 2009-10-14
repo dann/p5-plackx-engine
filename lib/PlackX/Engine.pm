@@ -123,17 +123,40 @@ PlackX::Engine - simple request wrapper for Plack
               { module => "Plack::Middleware::AccessLog::Timed" },
               { module => "Plack::Middleware::Static" }
           ],
-          request_class => 'Plack::Request', # you can use request class
+          request_class => 'Plack::Request', # optional
       }
   );
  
   $engine->run;
 
 * case2: as psgi handler builder
-  just create engine and return psgi_handler
+just create engine and return psgi_handler in example.psgi file
  
+  use PlackX::Engine;
+  use Plack::Response;
+
+  my $request_handler = sub {
+      my $req = shift;
+      my $res = Plack::Response->new;
+      $res->code(200);
+      $res->header( 'Content-Type' => 'text/html' );
+      $res->body( "Hello World" );
+  };
+  
+  my $engine = PlackX::Engine->new(
+      {
+          request_handler => $request_handler,
+          middlewares => [
+              { module => "Plack::Middleware::AccessLog::Timed" },
+              { module => "Plack::Middleware::Static" }
+          ],
+      }
+  );
   my $psgi_handler = $engine->psgi_handler;
 
+run your request handler with psgi
+
+  plackup -app example.psgi
 
 =head1 DESCRIPTION
 

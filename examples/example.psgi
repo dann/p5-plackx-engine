@@ -11,13 +11,7 @@ my $request_handler = sub {
 };
 
 my $engine = PlackX::Engine->new(
-    {   server => {
-            module => 'ServerSimple',
-            args   => {
-                port => 3000,
-                host => 'localhost',
-            },
-        },
+    {   
         request_handler => $request_handler,
         middlewares     => [
             { module => "Plack::Middleware::AccessLog::Timed" },

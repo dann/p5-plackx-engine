@@ -15,7 +15,7 @@ my $request_handler = sub {
 
 my $engine = PlackX::Engine->new(
     {   server => {
-            module => 'ServerSimple',
+            module => 'Standalone',
             args   => {
                 port => 3000,
                 host => 'localhost',
